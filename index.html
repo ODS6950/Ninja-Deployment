@@ -19,22 +19,108 @@
       margin: 10px;
     }
     .button:hover { background-color: #005ea0; }
+
+    /* PIN overlay */
+    #app { display: none; }
+    #pin-gate {
+      position: fixed; inset: 0; display: grid; place-items: center;
+      background: rgba(0,0,0,0.6); padding: 24px; z-index: 9999;
+    }
+    #pin-card {
+      width: 100%; max-width: 420px; background: #fff; border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 24px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      text-align: left;
+    }
+    #pin-card h2 { margin: 0 0 8px 0; font-size: 20px; color: #222; text-align: center; }
+    #pin-card p { margin: 0 0 16px 0; font-size: 14px; color: #555; text-align: center; }
+    #pin-field { display: flex; gap: 10px; margin-top: 12px; }
+    #pin-input {
+      flex: 1; padding: 12px; font-size: 16px;
+      border: 1px solid #cfcfcf; border-radius: 10px; outline: none;
+    }
+    #pin-btn {
+      padding: 12px 16px; font-size: 16px; border: 0; border-radius: 10px;
+      background: #2b6cb0; color: #fff; cursor: pointer;
+    }
+    #pin-error { color: #b00020; font-size: 13px; margin-top: 10px; min-height: 18px; text-align: center; }
+    .fade-in { animation: fade .22s ease-out forwards; }
+    @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
   </style>
 </head>
 <body>
-  <img src="SERV Profile Logo.png" alt="ODS Logo" class="logo">
-  <h1>Install the ODS Support Agent</h1>
-  <p>Select your location below to download the installer:</p>
 
-  <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe">Kansas</a>
-  <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe">Missouri</a>
-  <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe">Oklahoma</a>
-  <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe">Texas</a>
-  <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Western</a>
-  <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Mountain</a>
+  <!-- PIN Gate Overlay -->
+  <div id="pin-gate" aria-modal="true" role="dialog">
+    <div id="pin-card">
+      <h2>Enter PIN</h2>
+      <p>Access to this page requires a valid PIN.</p>
+      <form id="pin-form" autocomplete="off">
+        <div id="pin-field">
+          <input id="pin-input" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN" required />
+          <button id="pin-btn" type="submit">Unlock</button>
+        </div>
+        <div id="pin-error"></div>
+      </form>
+      <noscript><p style="color:#b00020;margin-top:12px;">JavaScript is required to view this page.</p></noscript>
+    </div>
+  </div>
 
-  <p style="margin-top:40px;font-size:20px;color:#555;">
-    Need help? Contact ODS IT Support at techsupport@onsitedealersolutions.com or by phone: 913-871-4220
-  </p>
+  <!-- Protected Content -->
+  <div id="app">
+    <img src="SERV Profile Logo.png" alt="ODS Logo" class="logo">
+    <h1>Install the ODS Support Agent</h1>
+    <p>Select your location below to download the installer:</p>
+
+    <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe">Kansas</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe">Missouri</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe">Oklahoma</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe">Texas</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Western</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Mountain</a>
+
+    <p style="margin-top:40px;font-size:20px;color:#555;">
+      Need help? Contact ODS IT Support at techsupport@onsitedealersolutions.com or by phone: 913-871-4220
+    </p>
+  </div>
+
+  <script>
+    async function sha256(message){
+      const msg = new TextEncoder().encode(message);
+      const buf = await crypto.subtle.digest("SHA-256", msg);
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+
+    (function pinGate(){
+      const correctHash = "72eec6bacef0e2f2d456543a69fb55deab224e9e720a201007d2056fedd94aea"; // sha256("onsite2020")
+      const app  = document.getElementById("app");
+      const gate = document.getElementById("pin-gate");
+      const form = document.getElementById("pin-form");
+      const input= document.getElementById("pin-input");
+      const error= document.getElementById("pin-error");
+
+      requestAnimationFrame(()=>input && input.focus());
+
+      form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        error.textContent = "";
+        try{
+          const ok = await sha256(input.value.trim()) === correctHash;
+          if(ok){
+            gate.style.display = "none";
+            app.style.display = "block";
+            app.classList.add("fade-in");
+          }else{
+            error.textContent = "Incorrect PIN. Try again.";
+            input.value = "";
+            input.focus();
+          }
+        }catch(err){
+          console.error(err);
+          error.textContent = "Something went wrong. Try again.";
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
