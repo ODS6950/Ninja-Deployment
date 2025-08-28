@@ -1,70 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ODS Support Agent Installer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f9f9f9; }
-    .logo { max-width: 200px; margin-bottom: 20px; }
-    h1 { font-size: 24px; color: #333; }
-    p { font-size: 16px; margin-bottom: 30px; color: #555; }
-    .button {
-      display: inline-block;
-      padding: 15px 30px;
-      font-size: 18px;
-      color: white;
-      background-color: #0078D7;
-      border-radius: 8px;
-      text-decoration: none;
-      margin: 10px;
+    :root{
+      --bg1:#f5f7fb;
+      --bg2:#e9eef8;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --primary:#0b63ce;
+      --primary-hover:#0a56b3;
+      --card:#ffffffcc;
+      --ring:#60a5fa;
+      --error:#b00020;
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --radius: 16px;
     }
-    .button:hover { background-color: #005ea0; }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg1:#0b1220;
+        --bg2:#121a2e;
+        --text:#e5e7eb;
+        --muted:#9ca3af;
+        --primary:#3b82f6;
+        --primary-hover:#2563eb;
+        --card:#111827cc;
+        --ring:#60a5fa;
+        --shadow: 0 10px 30px rgba(0,0,0,0.5);
+      }
+    }
 
-    /* Page-level PIN overlay */
-    #app { display: none; }
-    #pin-gate, #perbtn-gate {
-      position: fixed; inset: 0; display: grid; place-items: center;
-      background: rgba(0,0,0,0.6); padding: 24px; z-index: 9999;
-    }
-    #pin-card, #perbtn-card {
-      width: 100%; max-width: 420px; background: #fff; border-radius: 14px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 24px;
+    /* Page background */
+    body{
+      margin:0;
+      min-height:100svh;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 20% -10%, var(--bg2), transparent 60%),
+        radial-gradient(1200px 800px at 120% 110%, var(--bg2), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg1));
+      display:grid;
+      place-items:center;
+      padding: 24px;
+    }
+
+    /* Main card */
+    .card{
+      width:min(920px, 100%);
+      background: var(--card);
+      backdrop-filter: blur(8px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 3.5vw, 36px);
+    }
+
+    .header{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      margin-bottom: 8px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .logo{ width:auto; height:60px; object-fit:contain; }
+    h1{ margin:6px 0 6px; font-size: clamp(20px, 2.4vw, 28px); }
+    .sub{ margin:0 0 22px; color: var(--muted); font-size: clamp(14px, 1.7vw, 16px); }
+
+    /* Button grid */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (min-width: 640px){
+      .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    a.button{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      text-decoration:none;
+      font-size: 16px;
+      letter-spacing:.2px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      transition: transform .06s ease, box-shadow .12s ease, background .12s ease;
+      outline: none;
+      position: relative;
+      will-change: transform;
+    }
+    a.button:hover{
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.15);
+    }
+    a.button:active{
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    a.button:focus-visible{
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+
+    /* Help footer */
+    .help{
+      margin-top: 22px;
+      font-size: 15px;
+      color: var(--muted);
+      text-align:center;
+    }
+
+    /* Page-level and per-button PIN overlays */
+    #app{ display:none; }
+    #pin-gate, #perbtn-gate{
+      position: fixed; inset: 0; display: grid; place-items: center;
+      background: rgba(0,0,0,0.55);
+      padding: 24px; z-index: 9999;
+    }
+    #pin-card, #perbtn-card{
+      width: min(420px, 92vw);
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 22px;
       position: relative;
     }
-    #pin-card h2, #perbtn-card h2 { margin: 0 0 8px 0; font-size: 20px; color: #222; text-align: center; }
-    #pin-card p, #perbtn-card p { margin: 0 0 16px 0; font-size: 14px; color: #555; text-align: center; }
-    .pin-field { display: flex; gap: 10px; margin-top: 12px; }
-    .pin-input {
-      flex: 1; padding: 12px; font-size: 16px;
-      border: 1px solid #cfcfcf; border-radius: 10px; outline: none;
+    #pin-card h2, #perbtn-card h2{
+      margin: 0 0 8px 0; font-size: 20px; text-align:center;
     }
-    .pin-btn {
-      padding: 12px 16px; font-size: 16px; border: 0; border-radius: 10px;
-      background: #2b6cb0; color: #fff; cursor: pointer;
+    #pin-card p, #perbtn-card p{
+      margin: 0 0 14px 0; font-size: 14px; color: var(--muted); text-align:center;
     }
-    .pin-error { color: #b00020; font-size: 13px; margin-top: 10px; min-height: 18px; text-align: center; }
-    .fade-in { animation: fade .22s ease-out forwards; }
-    @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+    .pin-field{ display:flex; gap:10px; margin-top: 10px; }
+    .pin-input{
+      flex:1; padding:12px; font-size:16px;
+      border:1px solid #cfcfcf; border-radius:10px; outline:none;
+      background: #fff;
+    }
+    @media (prefers-color-scheme: dark){
+      .pin-input{ background:#0b1220; border-color:#303747; color:#e5e7eb; }
+    }
+    .pin-btn{
+      padding:12px 16px; font-size:16px; border:0; border-radius:10px;
+      background: var(--primary); color:#fff; cursor:pointer;
+    }
+    .pin-btn:hover{ background: var(--primary-hover); }
+    .pin-error{ color: var(--error); font-size:13px; margin-top:10px; min-height:18px; text-align:center; }
 
-    /* Hide per-button overlay by default */
-    #perbtn-gate { display: none; }
-
-    /* Close button */
-    .close-btn {
-      position: absolute;
-      top: 8px; right: 12px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #666;
-      cursor: pointer;
+    /* Close button for per-button modal */
+    .close-btn{
+      position:absolute; top:8px; right:12px;
+      font-size:22px; font-weight:700; line-height:1; cursor:pointer; color:#9aa0a6;
+      user-select:none;
     }
-    .close-btn:hover { color: #000; }
+    .close-btn:hover{ color:#1f2937; }
+    @media (prefers-color-scheme: dark){
+      .close-btn:hover{ color:#e5e7eb; }
+    }
+
+    /* Motion safety */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none !important; animation:none !important; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Global PIN Gate Overlay -->
+  <!-- Global PIN Gate -->
   <div id="pin-gate" aria-modal="true" role="dialog">
     <div id="pin-card">
       <h2>Enter PIN</h2>
@@ -76,13 +187,14 @@
         </div>
         <div id="pin-error" class="pin-error"></div>
       </form>
+      <noscript><p style="color:#b00020;margin-top:12px;">JavaScript is required to view this page.</p></noscript>
     </div>
   </div>
 
-  <!-- Per-button PIN Gate Overlay -->
-  <div id="perbtn-gate" aria-modal="true" role="dialog">
+  <!-- Per-button PIN Gate -->
+  <div id="perbtn-gate" aria-modal="true" role="dialog" style="display:none;">
     <div id="perbtn-card">
-      <span id="perbtn-close" class="close-btn">&times;</span>
+      <span id="perbtn-close" class="close-btn" aria-label="Close">&times;</span>
       <h2 id="perbtn-title">Enter PIN</h2>
       <p id="perbtn-desc">Enter the PIN for this download.</p>
       <form id="perbtn-form" autocomplete="off">
@@ -96,20 +208,26 @@
   </div>
 
   <!-- Protected Content -->
-  <div id="app">
-    <img src="SERV Profile Logo.png" alt="ODS Logo" class="logo">
-    <h1>Install the ODS Support Agent</h1>
-    <p>Select your location below to download the installer:</p>
+  <div id="app" class="card">
+    <div class="header">
+      <img src="SERV Profile Logo.png" alt="ODS Logo" class="logo">
+      <div>
+        <h1>Install the ODS Support Agent</h1>
+        <p class="sub">Select your location to download the installer</p>
+      </div>
+    </div>
 
-    <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe" data-region="Kansas">Kansas</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe" data-region="Missouri">Missouri</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe" data-region="Oklahoma">Oklahoma</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe" data-region="Texas">Texas</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe" data-region="Western">Western</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe" data-region="Mountain">Mountain</a>
+    <div class="grid">
+      <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe"   data-region="Kansas">Kansas</a>
+      <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe" data-region="Missouri">Missouri</a>
+      <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe"    data-region="Oklahoma">Oklahoma</a>
+      <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe" data-region="Texas">Texas</a>
+      <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe"  data-region="Western">Western</a>
+      <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe"  data-region="Mountain">Mountain</a>
+    </div>
 
-    <p style="margin-top:40px;font-size:20px;color:#555;">
-      Need help? Contact ODS IT Support at techsupport@onsitedealersolutions.com or by phone: 913-871-4220
+    <p class="help">
+      Need help? Contact ODS IT Support at techsupport@onsitedealersolutions.com or 913-871-4220
     </p>
   </div>
 
@@ -120,9 +238,9 @@
       return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
     }
 
-    // Page-level PIN
+    // Page-level PIN (onsite2020)
     (function pagePinGate(){
-      const correctHash = "72eec6bacef0e2f2d456543a69fb55deab224e9e720a201007d2056fedd94aea"; // sha256("onsite2020")
+      const correctHash = "72eec6bacef0e2f2d456543a69fb55deab224e9e720a201007d2056fedd94aea";
       const app  = document.getElementById("app");
       const gate = document.getElementById("pin-gate");
       const form = document.getElementById("pin-form");
@@ -136,7 +254,6 @@
         if(ok){
           gate.style.display = "none";
           app.style.display = "block";
-          app.classList.add("fade-in");
         }else{
           error.textContent = "Incorrect PIN. Try again.";
           input.value = "";
@@ -155,7 +272,7 @@
       "Mountain": "5ea6403c0cfac20a4e4e1b02199d0a82e23c045f0bb4e1f68bca3435e194356a"  // mt20
     };
 
-    // Per-button overlay logic
+    // Per-button modal
     (function perButtonPins(){
       const overlay = document.getElementById("perbtn-gate");
       const title = document.getElementById("perbtn-title");
@@ -200,18 +317,14 @@
         }
       });
 
-      closeBtn.addEventListener("click", ()=>{
+      function closeOverlay(){
         overlay.style.display = "none";
         pendingHref = null;
         expectedHash = null;
-      });
-
+      }
+      closeBtn.addEventListener("click", closeOverlay);
       document.addEventListener("keydown", (ev)=>{
-        if(ev.key === "Escape" && overlay.style.display !== "none"){
-          overlay.style.display = "none";
-          pendingHref = null;
-          expectedHash = null;
-        }
+        if(ev.key === "Escape" && overlay.style.display !== "none"){ closeOverlay(); }
       });
     })();
   </script>
