@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <title>ODS Support Agent Installer</title>
   <style>
-    /* Keep content hidden until PIN is validated */
-    #app { display: none; }
-
     body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f9f9f9; }
     .logo { max-width: 200px; margin-bottom: 20px; }
     h1 { font-size: 24px; color: #333; }
@@ -23,59 +20,21 @@
     }
     .button:hover { background-color: #005ea0; }
   </style>
-
-  <script>
-    // PIN gate using SHA-256 so the PIN isn't in source. Demo deterrence only.
-    async function sha256(message) {
-      const msgBuffer = new TextEncoder().encode(message);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-    }
-
-    (async function () {
-      const correctHash = "72eec6bacef0e2f2d456543a69fb55deab224e9e720a201007d2056fedd94aea";
-      let ok = false, tries = 0, maxTries = 3;
-
-      while (!ok && tries < maxTries) {
-        const pass = prompt("Enter your ODS install PIN:");
-        if (pass === null) break; // user cancelled
-        if (await sha256(pass) === correctHash) { ok = true; break; }
-        tries++;
-      }
-
-      if (ok) {
-        // Reveal the app only after successful PIN
-        const app = document.getElementById("app");
-        if (app) app.style.display = "block";
-      } else {
-        // Replace the entire body so nothing else is visible
-        document.body.innerHTML =
-          "<div style='font-family:Arial;text-align:center;padding:60px;'>" +
-          "<h2>Access denied</h2>" +
-          "<p>Installer portal is restricted. Contact ODS IT Support.</p>" +
-          "</div>";
-      }
-    })();
-  </script>
 </head>
 <body>
-  <!-- Everything inside #app stays hidden until PIN is correct -->
-  <div id="app">
-    <img src="SERV Profile Logo.png" alt="ODS Logo" class="logo">
-    <h1>Install the ODS Support Agent</h1>
-    <p>Select your location below to download the installer:</p>
+  <img src="SERV Profile Logo.png" alt="ODS Logo" class="logo">
+  <h1>Install the ODS Support Agent</h1>
+  <p>Select your location below to download the installer:</p>
 
-    <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe">Kansas</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe">Missouri</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe">Oklahoma</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe">Texas</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Western</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Mountain</a>
+  <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe">Kansas</a>
+  <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe">Missouri</a>
+  <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe">Oklahoma</a>
+  <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe">Texas</a>
+  <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Western</a>
+  <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Mountain</a>
 
-    <p style="margin-top:40px;font-size:20px;color:#555;">
-      Need help? Contact ODS IT Support at techsupport@onsitedealersolutions.com or by phone: 913-871-4220
-    </p>
-  </div>
+  <p style="margin-top:40px;font-size:20px;color:#555;">
+    Need help? Contact ODS IT Support at techsupport@onsitedealersolutions.com or by phone: 913-871-4220
+  </p>
 </body>
 </html>
