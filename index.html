@@ -238,7 +238,7 @@
       return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
     }
 
-    // Page-level PIN (onsite2020)
+    // Page-level PIN
     (function pagePinGate(){
       const correctHash = "72eec6bacef0e2f2d456543a69fb55deab224e9e720a201007d2056fedd94aea";
       const app  = document.getElementById("app");
@@ -264,12 +264,12 @@
 
     // Per-button PIN hashes (lowercase)
     const perButtonPinHashes = {
-      "Kansas":   "dfab9bbf0e5b442946f4dd59d1d8e8df9af7cc264fdfdc0cc0e14e06c40e12c8", // ks40
-      "Missouri": "3f08e3a174f1a98f5f57b63c76851ec93ee93c6e92008c00838d6a05f5506df7", // kc34
-      "Oklahoma": "4b9345fbeef22f3a5900721b098ffde1e4a3d44431c881c48ef56836a59859de", // ok18
-      "Texas":    "b97d355165f7f7d9c2a1a6a963155b2de58b9e5e406c60197b4d1aa79ca59077", // tx16
-      "Western":  "70581d81dcaf2cfa849cfa60bff2497e155f267f92e0d7f96bffae2e2db902f0", // we30
-      "Mountain": "5ea6403c0cfac20a4e4e1b02199d0a82e23c045f0bb4e1f68bca3435e194356a"  // mt20
+      "Kansas":   "dfab9bbf0e5b442946f4dd59d1d8e8df9af7cc264fdfdc0cc0e14e06c40e12c8",
+      "Missouri": "3f08e3a174f1a98f5f57b63c76851ec93ee93c6e92008c00838d6a05f5506df7",
+      "Oklahoma": "4b9345fbeef22f3a5900721b098ffde1e4a3d44431c881c48ef56836a59859de",
+      "Texas":    "b97d355165f7f7d9c2a1a6a963155b2de58b9e5e406c60197b4d1aa79ca59077",
+      "Western":  "70581d81dcaf2cfa849cfa60bff2497e155f267f92e0d7f96bffae2e2db902f0",
+      "Mountain": "5ea6403c0cfac20a4e4e1b02199d0a82e23c045f0bb4e1f68bca3435e194356a"
     };
 
     // Per-button modal
