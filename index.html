@@ -30,7 +30,7 @@
       width: 100%; max-width: 420px; background: #fff; border-radius: 14px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 24px;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      text-align: left;
+      position: relative;
     }
     #pin-card h2, #perbtn-card h2 { margin: 0 0 8px 0; font-size: 20px; color: #222; text-align: center; }
     #pin-card p, #perbtn-card p { margin: 0 0 16px 0; font-size: 14px; color: #555; text-align: center; }
@@ -49,6 +49,17 @@
 
     /* Hide per-button overlay by default */
     #perbtn-gate { display: none; }
+
+    /* Close button */
+    .close-btn {
+      position: absolute;
+      top: 8px; right: 12px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #666;
+      cursor: pointer;
+    }
+    .close-btn:hover { color: #000; }
   </style>
 </head>
 <body>
@@ -65,13 +76,13 @@
         </div>
         <div id="pin-error" class="pin-error"></div>
       </form>
-      <noscript><p style="color:#b00020;margin-top:12px;">JavaScript is required to view this page.</p></noscript>
     </div>
   </div>
 
   <!-- Per-button PIN Gate Overlay -->
   <div id="perbtn-gate" aria-modal="true" role="dialog">
     <div id="perbtn-card">
+      <span id="perbtn-close" class="close-btn">&times;</span>
       <h2 id="perbtn-title">Enter PIN</h2>
       <p id="perbtn-desc">Enter the PIN for this download.</p>
       <form id="perbtn-form" autocomplete="off">
@@ -121,31 +132,27 @@
       form.addEventListener("submit", async (e)=>{
         e.preventDefault();
         error.textContent = "";
-        try{
-          const ok = await sha256(input.value.trim()) === correctHash;
-          if(ok){
-            gate.style.display = "none";
-            app.style.display = "block";
-            app.classList.add("fade-in");
-          }else{
-            error.textContent = "Incorrect PIN. Try again.";
-            input.value = "";
-            input.focus();
-          }
-        }catch(err){
-          error.textContent = "Something went wrong. Try again.";
+        const ok = await sha256(input.value.trim()) === correctHash;
+        if(ok){
+          gate.style.display = "none";
+          app.style.display = "block";
+          app.classList.add("fade-in");
+        }else{
+          error.textContent = "Incorrect PIN. Try again.";
+          input.value = "";
+          input.focus();
         }
       });
     })();
 
-    // Per-button PIN hashes
+    // Per-button PIN hashes (lowercase)
     const perButtonPinHashes = {
-      "Kansas":   "8c38dac97e85df153d873905e34ff9ddde253bc75c9c26beae3425886545e9e5", // KS40
-      "Missouri": "6e1ebb6d1789e60d07526b4426bda512e4daa972334241ca3b61fd37bb400a25", // KC34
-      "Oklahoma": "b0d5997875646f0b93184b688a4495a7621340a27e474232c31b0ce381de7796", // OK18
-      "Texas":    "e1292a22e1090494170c7810127567f37c36471a0dcdf1449d527a8d6d15cf4d", // TX16
-      "Western":  "2a5ff4b4be22e1a556a03322eccdd99fc76e3ed09b906f08f66e1cb5437c1a3a", // WE30
-      "Mountain": "a23a2b5c673ac79a7778b4b5bc467dd063fca7205971b34dd8bdb39316a6ad19"  // MN20
+      "Kansas":   "dfab9bbf0e5b442946f4dd59d1d8e8df9af7cc264fdfdc0cc0e14e06c40e12c8", // ks40
+      "Missouri": "3f08e3a174f1a98f5f57b63c76851ec93ee93c6e92008c00838d6a05f5506df7", // kc34
+      "Oklahoma": "4b9345fbeef22f3a5900721b098ffde1e4a3d44431c881c48ef56836a59859de", // ok18
+      "Texas":    "b97d355165f7f7d9c2a1a6a963155b2de58b9e5e406c60197b4d1aa79ca59077", // tx16
+      "Western":  "70581d81dcaf2cfa849cfa60bff2497e155f267f92e0d7f96bffae2e2db902f0", // we30
+      "Mountain": "5ea6403c0cfac20a4e4e1b02199d0a82e23c045f0bb4e1f68bca3435e194356a"  // mt20
     };
 
     // Per-button overlay logic
@@ -156,6 +163,7 @@
       const form = document.getElementById("perbtn-form");
       const input = document.getElementById("perbtn-input");
       const error = document.getElementById("perbtn-error");
+      const closeBtn = document.getElementById("perbtn-close");
 
       let pendingHref = null;
       let expectedHash = null;
@@ -179,21 +187,23 @@
       form.addEventListener("submit", async (e)=>{
         e.preventDefault();
         error.textContent = "";
-        try{
-          const ok = await sha256(input.value.trim()) === expectedHash;
-          if(ok && pendingHref){
-            overlay.style.display = "none";
-            window.location.href = pendingHref;
-            pendingHref = null;
-            expectedHash = null;
-          }else{
-            error.textContent = "Incorrect PIN. Try again.";
-            input.value = "";
-            input.focus();
-          }
-        }catch(err){
-          error.textContent = "Something went wrong. Try again.";
+        const ok = await sha256(input.value.trim()) === expectedHash;
+        if(ok && pendingHref){
+          overlay.style.display = "none";
+          window.location.href = pendingHref;
+          pendingHref = null;
+          expectedHash = null;
+        }else{
+          error.textContent = "Incorrect PIN. Try again.";
+          input.value = "";
+          input.focus();
         }
+      });
+
+      closeBtn.addEventListener("click", ()=>{
+        overlay.style.display = "none";
+        pendingHref = null;
+        expectedHash = null;
       });
 
       document.addEventListener("keydown", (ev)=>{
