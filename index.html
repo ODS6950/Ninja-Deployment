@@ -20,49 +20,67 @@
     }
     .button:hover { background-color: #005ea0; }
 
-    /* PIN overlay */
+    /* Page-level PIN overlay */
     #app { display: none; }
-    #pin-gate {
+    #pin-gate, #perbtn-gate {
       position: fixed; inset: 0; display: grid; place-items: center;
       background: rgba(0,0,0,0.6); padding: 24px; z-index: 9999;
     }
-    #pin-card {
+    #pin-card, #perbtn-card {
       width: 100%; max-width: 420px; background: #fff; border-radius: 14px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.2); padding: 24px;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       text-align: left;
     }
-    #pin-card h2 { margin: 0 0 8px 0; font-size: 20px; color: #222; text-align: center; }
-    #pin-card p { margin: 0 0 16px 0; font-size: 14px; color: #555; text-align: center; }
-    #pin-field { display: flex; gap: 10px; margin-top: 12px; }
-    #pin-input {
+    #pin-card h2, #perbtn-card h2 { margin: 0 0 8px 0; font-size: 20px; color: #222; text-align: center; }
+    #pin-card p, #perbtn-card p { margin: 0 0 16px 0; font-size: 14px; color: #555; text-align: center; }
+    .pin-field { display: flex; gap: 10px; margin-top: 12px; }
+    .pin-input {
       flex: 1; padding: 12px; font-size: 16px;
       border: 1px solid #cfcfcf; border-radius: 10px; outline: none;
     }
-    #pin-btn {
+    .pin-btn {
       padding: 12px 16px; font-size: 16px; border: 0; border-radius: 10px;
       background: #2b6cb0; color: #fff; cursor: pointer;
     }
-    #pin-error { color: #b00020; font-size: 13px; margin-top: 10px; min-height: 18px; text-align: center; }
+    .pin-error { color: #b00020; font-size: 13px; margin-top: 10px; min-height: 18px; text-align: center; }
     .fade-in { animation: fade .22s ease-out forwards; }
     @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+
+    /* Hide per-button overlay by default */
+    #perbtn-gate { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- PIN Gate Overlay -->
+  <!-- Global PIN Gate Overlay -->
   <div id="pin-gate" aria-modal="true" role="dialog">
     <div id="pin-card">
       <h2>Enter PIN</h2>
       <p>Access to this page requires a valid PIN.</p>
       <form id="pin-form" autocomplete="off">
-        <div id="pin-field">
-          <input id="pin-input" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN" required />
-          <button id="pin-btn" type="submit">Unlock</button>
+        <div class="pin-field">
+          <input id="pin-input" class="pin-input" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN" required />
+          <button id="pin-btn" class="pin-btn" type="submit">Unlock</button>
         </div>
-        <div id="pin-error"></div>
+        <div id="pin-error" class="pin-error"></div>
       </form>
       <noscript><p style="color:#b00020;margin-top:12px;">JavaScript is required to view this page.</p></noscript>
+    </div>
+  </div>
+
+  <!-- Per-button PIN Gate Overlay -->
+  <div id="perbtn-gate" aria-modal="true" role="dialog">
+    <div id="perbtn-card">
+      <h2 id="perbtn-title">Enter PIN</h2>
+      <p id="perbtn-desc">Enter the PIN for this download.</p>
+      <form id="perbtn-form" autocomplete="off">
+        <div class="pin-field">
+          <input id="perbtn-input" class="pin-input" type="password" inputmode="text" placeholder="PIN" aria-label="Download PIN" required />
+          <button id="perbtn-btn" class="pin-btn" type="submit">Continue</button>
+        </div>
+        <div id="perbtn-error" class="pin-error"></div>
+      </form>
     </div>
   </div>
 
@@ -72,12 +90,12 @@
     <h1>Install the ODS Support Agent</h1>
     <p>Select your location below to download the installer:</p>
 
-    <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe">Kansas</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe">Missouri</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe">Oklahoma</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe">Texas</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Western</a>
-    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe">Mountain</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/kansas_installer.exe" data-region="Kansas">Kansas</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/missouri_installer.exe" data-region="Missouri">Missouri</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/texas_installer.exe" data-region="Oklahoma">Oklahoma</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/oklahoma_installer.exe" data-region="Texas">Texas</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe" data-region="Western">Western</a>
+    <a class="button" href="https://dl.ninjarmm.com/agent/western_installer.exe" data-region="Mountain">Mountain</a>
 
     <p style="margin-top:40px;font-size:20px;color:#555;">
       Need help? Contact ODS IT Support at techsupport@onsitedealersolutions.com or by phone: 913-871-4220
@@ -91,15 +109,14 @@
       return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
     }
 
-    (function pinGate(){
+    // Page-level PIN
+    (function pagePinGate(){
       const correctHash = "72eec6bacef0e2f2d456543a69fb55deab224e9e720a201007d2056fedd94aea"; // sha256("onsite2020")
       const app  = document.getElementById("app");
       const gate = document.getElementById("pin-gate");
       const form = document.getElementById("pin-form");
       const input= document.getElementById("pin-input");
       const error= document.getElementById("pin-error");
-
-      requestAnimationFrame(()=>input && input.focus());
 
       form.addEventListener("submit", async (e)=>{
         e.preventDefault();
@@ -116,8 +133,74 @@
             input.focus();
           }
         }catch(err){
-          console.error(err);
           error.textContent = "Something went wrong. Try again.";
+        }
+      });
+    })();
+
+    // Per-button PIN hashes
+    const perButtonPinHashes = {
+      "Kansas":   "8c38dac97e85df153d873905e34ff9ddde253bc75c9c26beae3425886545e9e5", // KS40
+      "Missouri": "6e1ebb6d1789e60d07526b4426bda512e4daa972334241ca3b61fd37bb400a25", // KC34
+      "Oklahoma": "b0d5997875646f0b93184b688a4495a7621340a27e474232c31b0ce381de7796", // OK18
+      "Texas":    "e1292a22e1090494170c7810127567f37c36471a0dcdf1449d527a8d6d15cf4d", // TX16
+      "Western":  "2a5ff4b4be22e1a556a03322eccdd99fc76e3ed09b906f08f66e1cb5437c1a3a", // WE30
+      "Mountain": "a23a2b5c673ac79a7778b4b5bc467dd063fca7205971b34dd8bdb39316a6ad19"  // MN20
+    };
+
+    // Per-button overlay logic
+    (function perButtonPins(){
+      const overlay = document.getElementById("perbtn-gate");
+      const title = document.getElementById("perbtn-title");
+      const desc = document.getElementById("perbtn-desc");
+      const form = document.getElementById("perbtn-form");
+      const input = document.getElementById("perbtn-input");
+      const error = document.getElementById("perbtn-error");
+
+      let pendingHref = null;
+      let expectedHash = null;
+
+      document.getElementById("app").addEventListener("click", (e) => {
+        const link = e.target.closest("a.button");
+        if(!link) return;
+        e.preventDefault();
+
+        const region = link.getAttribute("data-region");
+        pendingHref = link.getAttribute("href");
+        expectedHash = perButtonPinHashes[region];
+        title.textContent = "Enter PIN";
+        desc.textContent = "Enter the PIN for " + region + ".";
+        error.textContent = "";
+        input.value = "";
+        overlay.style.display = "grid";
+        input.focus();
+      });
+
+      form.addEventListener("submit", async (e)=>{
+        e.preventDefault();
+        error.textContent = "";
+        try{
+          const ok = await sha256(input.value.trim()) === expectedHash;
+          if(ok && pendingHref){
+            overlay.style.display = "none";
+            window.location.href = pendingHref;
+            pendingHref = null;
+            expectedHash = null;
+          }else{
+            error.textContent = "Incorrect PIN. Try again.";
+            input.value = "";
+            input.focus();
+          }
+        }catch(err){
+          error.textContent = "Something went wrong. Try again.";
+        }
+      });
+
+      document.addEventListener("keydown", (ev)=>{
+        if(ev.key === "Escape" && overlay.style.display !== "none"){
+          overlay.style.display = "none";
+          pendingHref = null;
+          expectedHash = null;
         }
       });
     })();
